@@ -168,6 +168,7 @@ async def username_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [
         [InlineKeyboardButton("\U0001f381 $30 Free", callback_data="bonus_30_free")],
+        [InlineKeyboardButton("\U0001f3b0 200% Bonus", callback_data="bonus_200_pct")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -183,6 +184,9 @@ async def bonus_30_free_callback(update: Update, context: ContextTypes.DEFAULT_T
     query = update.callback_query
     await query.answer()
 
+    context.user_data["selected_offer"] = "30_free"
+    context.user_data["min_deposit"] = 20
+
     keyboard = [
         [InlineKeyboardButton("\u2705 Yes", callback_data="deposit_yes")],
         [InlineKeyboardButton("\u274c No", callback_data="deposit_no")],
@@ -195,13 +199,39 @@ async def bonus_30_free_callback(update: Update, context: ContextTypes.DEFAULT_T
     )
 
 
+async def bonus_200_pct_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle '200% Bonus' button - send deposit question with Yes/No."""
+    query = update.callback_query
+    await query.answer()
+
+    context.user_data["selected_offer"] = "200_pct"
+    context.user_data["min_deposit"] = 50
+
+    keyboard = [
+        [InlineKeyboardButton("\u2705 Yes", callback_data="deposit_yes")],
+        [InlineKeyboardButton("\u274c No", callback_data="deposit_no")],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.message.reply_text(
+        "On your first deposit from our bot you will receive a guaranteed 200% bonus if you make a minimum deposit of $50 in any currency of your choice ( can be withdrawn instantly ). Do you want to proceed ?",
+        reply_markup=reply_markup,
+    )
+
+
 async def deposit_yes_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle 'Yes' on deposit question - edit message to confirm offer selected, then ask currency."""
     query = update.callback_query
     await query.answer()
 
+    offer = context.user_data.get("selected_offer", "30_free")
+    if offer == "200_pct":
+        offer_text = "Offer Selected : 200% Deposit Bonus."
+    else:
+        offer_text = "Offer Selected : $30 Free Deposit Bonus."
+
     await query.edit_message_text(
-        "<b>Offer Selected : $30 Free Deposit Bonus.</b>",
+        f"<b>{offer_text}</b>",
         parse_mode="HTML",
     )
 
@@ -223,9 +253,14 @@ async def deposit_yes_callback(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 async def deposit_no_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle 'No' on deposit question - placeholder for future logic."""
+    """Handle 'No' on deposit question - edit to rejection message."""
     query = update.callback_query
     await query.answer()
+
+    await query.edit_message_text(
+        "<b>\u274c User has rejected the offer</b>",
+        parse_mode="HTML",
+    )
 
 
 async def currency_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -278,7 +313,7 @@ async def network_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=(
-            "<i>Please Deposit minimum $20 to the following Stake deposit address to proceed.</i>\n\n"
+            f"<i>Please Deposit minimum ${context.user_data.get('min_deposit', 20)} to the following Stake deposit address to proceed.</i>\n\n"
             f"Address : <code>{address}</code>\n"
             f"Network : <b>{network_display}</b>"
         ),
@@ -315,6 +350,7 @@ def main():
     app.add_handler(CallbackQueryHandler(has_account_no_callback, pattern="^has_account_no$"))
     app.add_handler(CallbackQueryHandler(resume_process_callback, pattern="^resume_process$"))
     app.add_handler(CallbackQueryHandler(bonus_30_free_callback, pattern="^bonus_30_free$"))
+    app.add_handler(CallbackQueryHandler(bonus_200_pct_callback, pattern="^bonus_200_pct$"))
     app.add_handler(CallbackQueryHandler(deposit_yes_callback, pattern="^deposit_yes$"))
     app.add_handler(CallbackQueryHandler(deposit_no_callback, pattern="^deposit_no$"))
     app.add_handler(CallbackQueryHandler(currency_callback, pattern="^currency_"))
