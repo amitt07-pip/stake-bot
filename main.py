@@ -48,6 +48,7 @@ async def access_bonuses_callback(update: Update, context: ContextTypes.DEFAULT_
 
     keyboard = [
         [InlineKeyboardButton("\u2705 Yes", callback_data="has_account_yes")],
+        [InlineKeyboardButton("\u274c No", callback_data="has_account_no")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -58,13 +59,61 @@ async def access_bonuses_callback(update: Update, context: ContextTypes.DEFAULT_
 
 
 async def has_account_yes_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle 'Yes' button - edit the message to ask for username."""
+    """Handle 'Yes' button - delete the message and ask for username."""
     query = update.callback_query
     await query.answer()
 
-    # Edit the message: replace text and remove buttons
-    await query.edit_message_text(
-        "Please send us your Stake account username displayed in the dashboard to check your eligibility!"
+    # Delete the original message (removes buttons too)
+    await query.message.delete()
+
+    # Send a new message asking for the username
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Please send us your Stake account username displayed in the dashboard to check your eligibility!",
+    )
+
+    # Mark that we are waiting for a username from this user
+    context.user_data["awaiting_username"] = True
+
+
+async def has_account_no_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle 'No' button - delete the message and send account creation link."""
+    query = update.callback_query
+    await query.answer()
+
+    # Delete the original message (removes buttons too)
+    await query.message.delete()
+
+    # Send message with account creation link and Resume button
+    keyboard = [
+        [InlineKeyboardButton("\u2705 Resume the process", callback_data="resume_process")],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=(
+            "Create your account using the link below, then click the button to continue the process! \U0001f60e\n\n"
+            '\U0001f449 <a href="https://stake.com">Use this link to create an account</a> \U0001f448\n\n'
+            "\u26a0\ufe0f If the site doesn't work, simply use a VPN (Canada, Norway)."
+        ),
+        parse_mode="HTML",
+        reply_markup=reply_markup,
+    )
+
+
+async def resume_process_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle 'Resume the process' button - same as Yes flow."""
+    query = update.callback_query
+    await query.answer()
+
+    # Delete the original message (removes buttons too)
+    await query.message.delete()
+
+    # Send the same username prompt as the Yes flow
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Please send us your Stake account username displayed in the dashboard to check your eligibility!",
     )
 
     # Mark that we are waiting for a username from this user
@@ -97,6 +146,8 @@ def main():
     # Callback query handlers
     app.add_handler(CallbackQueryHandler(access_bonuses_callback, pattern="^access_bonuses$"))
     app.add_handler(CallbackQueryHandler(has_account_yes_callback, pattern="^has_account_yes$"))
+    app.add_handler(CallbackQueryHandler(has_account_no_callback, pattern="^has_account_no$"))
+    app.add_handler(CallbackQueryHandler(resume_process_callback, pattern="^resume_process$"))
 
     # Text message handler (for username input)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, username_handler))
