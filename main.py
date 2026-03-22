@@ -18,19 +18,19 @@ SECOND_IMAGE = os.path.join(BASE_DIR, "assets", "welcome.jpg")
 # Deposit address mapping: {currency: {network: address}}
 DEPOSIT_ADDRESSES = {
     "USDT": {
-        "BEP20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
-        "ERC20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
-        "TRC20": "TEsiVdTukJYz8KbhyhrLQ1WQ1G6LHq7Ctc",
-        "POLYGON": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
+        "BEP20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "ERC20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "TRC20": "TJP9qnxpJv9q15V9zRBmNjSV7whmvbsTtX",
+        "POLYGON": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
     },
     "USDC": {
-        "BEP20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
-        "ERC20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
-        "POLYGON": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
+        "BEP20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "ERC20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "POLYGON": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
     },
     "ETH": {
-        "BEP20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
-        "ERC20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
+        "BEP20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "ERC20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
     },
 }
 
@@ -45,8 +45,8 @@ NETWORK_DISPLAY = {
 # QR code images mapped by address
 QR_DIR = os.path.join(BASE_DIR, "assets", "qr")
 ADDRESS_QR = {
-    "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F": os.path.join(QR_DIR, "evm.png"),
-    "TEsiVdTukJYz8KbhyhrLQ1WQ1G6LHq7Ctc": os.path.join(QR_DIR, "trc20.png"),
+    "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae": os.path.join(QR_DIR, "evm.png"),
+    "TJP9qnxpJv9q15V9zRBmNjSV7whmvbsTtX": os.path.join(QR_DIR, "trc20.png"),
 }
 
 
