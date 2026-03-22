@@ -311,31 +311,35 @@ async def network_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     address = DEPOSIT_ADDRESSES.get(currency, {}).get(network, "")
     network_display = NETWORK_DISPLAY.get(network, network)
 
-    # Send QR code for the deposit address
+    # Send deposit address message with QR code attached and "I have deposited" button
+    keyboard = [
+        [InlineKeyboardButton("\u2705 I have deposited", callback_data="i_have_deposited")],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    deposit_caption = (
+        f"<i>Please Deposit minimum ${context.user_data.get('min_deposit', 20)} to the following Stake deposit address to proceed.</i>\n\n"
+        f"Address : <code>{address}</code>\n"
+        f"Network : <b>{network_display}</b>"
+    )
+
     qr_path = ADDRESS_QR.get(address)
     if qr_path:
         with open(qr_path, "rb") as qr_file:
             await context.bot.send_photo(
                 chat_id=update.effective_chat.id,
                 photo=qr_file,
+                caption=deposit_caption,
+                parse_mode="HTML",
+                reply_markup=reply_markup,
             )
-
-    # Send deposit address message with "I have deposited" button
-    keyboard = [
-        [InlineKeyboardButton("\u2705 I have deposited", callback_data="i_have_deposited")],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=(
-            f"<i>Please Deposit minimum ${context.user_data.get('min_deposit', 20)} to the following Stake deposit address to proceed.</i>\n\n"
-            f"Address : <code>{address}</code>\n"
-            f"Network : <b>{network_display}</b>"
-        ),
-        parse_mode="HTML",
-        reply_markup=reply_markup,
-    )
+    else:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=deposit_caption,
+            parse_mode="HTML",
+            reply_markup=reply_markup,
+        )
 
 
 async def i_have_deposited_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
