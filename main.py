@@ -259,9 +259,12 @@ async def username_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def bonus_30_free_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle '$30 Free' button - send deposit question with Yes/No."""
+    """Handle '$30 Free' button - delete bonus message and send deposit question with Yes/No."""
     query = update.callback_query
     await query.answer()
+
+    # Delete the bonus selection message
+    await query.message.delete()
 
     context.user_data["selected_offer"] = "30_free"
     context.user_data["min_deposit"] = 20
@@ -272,8 +275,9 @@ async def bonus_30_free_callback(update: Update, context: ContextTypes.DEFAULT_T
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await query.message.reply_text(
-        "Do you want to make a deposit of minimum $20? (If yes, you will receive $30 in any currency of your choice with no strings attached, which guarantees you earn money even if you lose your deposit ! \U0001f60e)",
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Do you want to make a deposit of minimum $20? (If yes, you will receive $30 in any currency of your choice with no strings attached, which guarantees you earn money even if you lose your deposit ! \U0001f60e)",
         reply_markup=reply_markup,
     )
 
@@ -283,9 +287,12 @@ async def bonus_30_free_callback(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def bonus_200_pct_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle '200% Bonus' button - send deposit question with Yes/No."""
+    """Handle '200% Bonus' button - delete bonus message and send deposit question with Yes/No."""
     query = update.callback_query
     await query.answer()
+
+    # Delete the bonus selection message
+    await query.message.delete()
 
     context.user_data["selected_offer"] = "200_pct"
     context.user_data["min_deposit"] = 50
@@ -296,8 +303,9 @@ async def bonus_200_pct_callback(update: Update, context: ContextTypes.DEFAULT_T
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await query.message.reply_text(
-        "On your first deposit from our bot you will receive a guaranteed 200% bonus if you make a minimum deposit of $50 in any currency of your choice ( can be withdrawn instantly ). Do you want to proceed ?",
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="On your first deposit from our bot you will receive a guaranteed 200% bonus if you make a minimum deposit of $50 in any currency of your choice ( can be withdrawn instantly ). Do you want to proceed ?",
         reply_markup=reply_markup,
     )
 
