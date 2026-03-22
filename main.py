@@ -1,5 +1,6 @@
 import asyncio
 import os
+from datetime import datetime, timezone
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
@@ -53,14 +54,37 @@ ADDRESS_QR = {
 LOG_CHANNEL_ID = -1003734992930
 
 
-def _log_text(username: str, user_id: int, step: str) -> str:
-    """Build the log message text."""
-    return f"Username: @{username}\nUser ID: {user_id}\nStatus: <code>{step}</code>"
+def _log_text(user_data: dict, username: str, user_id: int, step: str) -> str:
+    """Build the professional log message text."""
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    lines = [
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        "📊 <b>User Activity Log</b>",
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        f"👤 Username  : @{username}",
+        f"🆔 User ID   : <code>{user_id}</code>",
+        f"📅 Last Active : <code>{now}</code>",
+        "",
+        f"📌 Status : <code>{step}</code>",
+    ]
+    currency = user_data.get("selected_currency")
+    network = user_data.get("selected_network")
+    offer = user_data.get("selected_offer")
+    if offer:
+        offer_label = "$30 Free" if offer == "30_free" else "200% Bonus"
+        lines.append(f"🎁 Offer    : <code>{offer_label}</code>")
+    if currency:
+        lines.append(f"💱 Currency : <code>{currency}</code>")
+    if network:
+        lines.append(f"🌐 Network  : <code>{network}</code>")
+    lines.append("")
+    lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    return "\n".join(lines)
 
 
 async def _post_log(context: ContextTypes.DEFAULT_TYPE, user_data: dict, username: str, user_id: int, step: str):
     """Post a new log message to the channel or edit the existing one."""
-    text = _log_text(username, user_id, step)
+    text = _log_text(user_data, username, user_id, step)
     log_msg_id = user_data.get("log_message_id")
     if log_msg_id:
         try:
