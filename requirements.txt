@@ -1,0 +1,3 @@
+python-telegram-bot==22.5
+qrcode==8.2
+Pillow
