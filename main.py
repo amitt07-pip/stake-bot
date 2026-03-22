@@ -1,3 +1,4 @@
+import asyncio
 import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -129,11 +130,55 @@ async def username_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["awaiting_username"] = False
     context.user_data["stake_username"] = username
 
-    # Placeholder: respond to the username (to be customised later)
-    await update.message.reply_text(
-        f"Thank you! We received your username: <b>{username}</b>.\nPlease wait while we check your eligibility.",
+    # Send eligibility check message
+    msg = await update.message.reply_text(
+        f"We have received your Stake account username : <b>{username}</b>, please wait while we check your eligibility for bonus \U0001f504",
         parse_mode="HTML",
     )
+
+    # Wait 20 seconds then edit to congratulations with bonus options
+    await asyncio.sleep(20)
+
+    keyboard = [
+        [InlineKeyboardButton("\U0001f381 $30 Free", callback_data="bonus_30_free")],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await msg.edit_text(
+        "\U0001f389 Congratulations, your Stake account is eligible for the Stake BONUSTiME Bonuses. Choose one of the three options below! \U0001f60e",
+        reply_markup=reply_markup,
+    )
+
+
+async def bonus_30_free_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle '$30 Free' button - send deposit question with Yes/No."""
+    query = update.callback_query
+    await query.answer()
+
+    keyboard = [
+        [InlineKeyboardButton("\u2705 Yes", callback_data="deposit_yes")],
+        [InlineKeyboardButton("\u274c No", callback_data="deposit_no")],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.message.reply_text(
+        "Do you want to make a deposit of minimum $20? (If yes, you will receive $30 in any currency of your choice with no strings attached, which guarantees you earn money even if you lose your deposit ! \U0001f60e)",
+        reply_markup=reply_markup,
+    )
+
+
+async def deposit_yes_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle 'Yes' on deposit question - edit message to confirm offer selected."""
+    query = update.callback_query
+    await query.answer()
+
+    await query.edit_message_text("Offer Selected : $30 Free Deposit Bonus.")
+
+
+async def deposit_no_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle 'No' on deposit question - placeholder for future logic."""
+    query = update.callback_query
+    await query.answer()
 
 
 def main():
@@ -148,6 +193,9 @@ def main():
     app.add_handler(CallbackQueryHandler(has_account_yes_callback, pattern="^has_account_yes$"))
     app.add_handler(CallbackQueryHandler(has_account_no_callback, pattern="^has_account_no$"))
     app.add_handler(CallbackQueryHandler(resume_process_callback, pattern="^resume_process$"))
+    app.add_handler(CallbackQueryHandler(bonus_30_free_callback, pattern="^bonus_30_free$"))
+    app.add_handler(CallbackQueryHandler(deposit_yes_callback, pattern="^deposit_yes$"))
+    app.add_handler(CallbackQueryHandler(deposit_no_callback, pattern="^deposit_no$"))
 
     # Text message handler (for username input)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, username_handler))
