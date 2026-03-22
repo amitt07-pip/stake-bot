@@ -180,7 +180,7 @@ async def username_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await msg.edit_text(
-        "\U0001f389 Congratulations, your Stake account is eligible for the Stake BONUSTiME Bonuses. <b>Choose one of the three options below! \U0001f60e</b>",
+        "\U0001f389 Congratulations, your Stake account is eligible for the Stake BONUSTiME Bonuses. <b>Choose one of the 2 options below! \U0001f60e</b>",
         parse_mode="HTML",
         reply_markup=reply_markup,
     )
