@@ -219,7 +219,7 @@ async def username_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     # Wait 20 seconds then edit to congratulations with bonus options
-    await asyncio.sleep(20)
+    await asyncio.sleep(10)
 
     keyboard = [
         [InlineKeyboardButton("\U0001f381 $30 Free", callback_data="bonus_30_free")],
