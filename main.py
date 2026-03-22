@@ -18,19 +18,19 @@ SECOND_IMAGE = os.path.join(BASE_DIR, "assets", "welcome.jpg")
 # Deposit address mapping: {currency: {network: address}}
 DEPOSIT_ADDRESSES = {
     "USDT": {
-        "BEP20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
-        "ERC20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
-        "TRC20": "TJP9qnxpJv9q15V9zRBmNjSV7whmvbsTtX",
-        "POLYGON": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "BEP20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
+        "ERC20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
+        "TRC20": "TEsiVdTukJYz8KbhyhrLQ1WQ1G6LHq7Ctc",
+        "POLYGON": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
     },
     "USDC": {
-        "BEP20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
-        "ERC20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
-        "POLYGON": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "BEP20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
+        "ERC20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
+        "POLYGON": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
     },
     "ETH": {
-        "BEP20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
-        "ERC20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "BEP20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
+        "ERC20": "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F",
     },
 }
 
@@ -40,6 +40,13 @@ NETWORK_DISPLAY = {
     "ERC20": "ERC20",
     "TRC20": "TRC20",
     "POLYGON": "POLYGON",
+}
+
+# QR code images mapped by address
+QR_DIR = os.path.join(BASE_DIR, "assets", "qr")
+ADDRESS_QR = {
+    "0x8c640881238BEC28509bB3a8F37Dbf3398668a4F": os.path.join(QR_DIR, "evm.png"),
+    "TEsiVdTukJYz8KbhyhrLQ1WQ1G6LHq7Ctc": os.path.join(QR_DIR, "trc20.png"),
 }
 
 
@@ -303,6 +310,15 @@ async def network_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Get the deposit address
     address = DEPOSIT_ADDRESSES.get(currency, {}).get(network, "")
     network_display = NETWORK_DISPLAY.get(network, network)
+
+    # Send QR code for the deposit address
+    qr_path = ADDRESS_QR.get(address)
+    if qr_path:
+        with open(qr_path, "rb") as qr_file:
+            await context.bot.send_photo(
+                chat_id=update.effective_chat.id,
+                photo=qr_file,
+            )
 
     # Send deposit address message with "I have deposited" button
     keyboard = [
