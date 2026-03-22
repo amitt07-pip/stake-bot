@@ -428,9 +428,15 @@ async def network_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def i_have_deposited_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle 'I have deposited' button - send confirmation message."""
+    """Handle 'I have deposited' button - remove button and send confirmation message."""
     query = update.callback_query
     await query.answer()
+
+    # Remove the button from the deposit message
+    try:
+        await query.edit_message_reply_markup(reply_markup=None)
+    except Exception:
+        pass
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
