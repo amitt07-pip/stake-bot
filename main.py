@@ -15,6 +15,33 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FIRST_IMAGE = os.path.join(BASE_DIR, "assets", "welcome_first.jpg")
 SECOND_IMAGE = os.path.join(BASE_DIR, "assets", "welcome.jpg")
 
+# Deposit address mapping: {currency: {network: address}}
+DEPOSIT_ADDRESSES = {
+    "USDT": {
+        "BEP20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "ERC20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "TRC20": "TJP9qnxpJv9q15V9zRBmNjSV7whmvbsTtX",
+        "POLYGON": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+    },
+    "USDC": {
+        "BEP20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "ERC20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "POLYGON": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+    },
+    "ETH": {
+        "BEP20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+        "ERC20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
+    },
+}
+
+# Network display names for deposit message
+NETWORK_DISPLAY = {
+    "BEP20": "BEP20/BSC",
+    "ERC20": "ERC20",
+    "TRC20": "TRC20",
+    "POLYGON": "POLYGON",
+}
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start - send two images then welcome text with buttons."""
@@ -168,17 +195,107 @@ async def bonus_30_free_callback(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def deposit_yes_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle 'Yes' on deposit question - edit message to confirm offer selected."""
+    """Handle 'Yes' on deposit question - edit message to confirm offer selected, then ask currency."""
     query = update.callback_query
     await query.answer()
 
     await query.edit_message_text("Offer Selected : $30 Free Deposit Bonus.")
+
+    # Send currency selection message
+    keyboard = [
+        [
+            InlineKeyboardButton("USDT", callback_data="currency_USDT"),
+            InlineKeyboardButton("USDC", callback_data="currency_USDC"),
+            InlineKeyboardButton("ETH", callback_data="currency_ETH"),
+        ],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Please choose the Currency you want to deposit!",
+        reply_markup=reply_markup,
+    )
 
 
 async def deposit_no_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle 'No' on deposit question - placeholder for future logic."""
     query = update.callback_query
     await query.answer()
+
+
+async def currency_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle currency selection - show network options."""
+    query = update.callback_query
+    await query.answer()
+
+    currency = query.data.replace("currency_", "")
+    context.user_data["selected_currency"] = currency
+
+    # Build network buttons based on available networks for this currency
+    networks = list(DEPOSIT_ADDRESSES.get(currency, {}).keys())
+    keyboard = [
+        [InlineKeyboardButton(net, callback_data=f"network_{net}") for net in networks],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await query.edit_message_text(
+        f"<b>Currency Selected : {currency}\nPlease choose the network for the following currency</b>",
+        parse_mode="HTML",
+        reply_markup=reply_markup,
+    )
+
+
+async def network_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle network selection - show deposit address."""
+    query = update.callback_query
+    await query.answer()
+
+    network = query.data.replace("network_", "")
+    currency = context.user_data.get("selected_currency", "USDT")
+    context.user_data["selected_network"] = network
+
+    # Edit message to show currency + network selected
+    await query.edit_message_text(
+        f"<b>Currency Selected : {currency}\nNetwork Selected : {network}</b>",
+        parse_mode="HTML",
+    )
+
+    # Get the deposit address
+    address = DEPOSIT_ADDRESSES.get(currency, {}).get(network, "")
+    network_display = NETWORK_DISPLAY.get(network, network)
+
+    # Send deposit address message with "I have deposited" button
+    keyboard = [
+        [InlineKeyboardButton("\u2705 I have deposited", callback_data="i_have_deposited")],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=(
+            "Please Deposit minimum $20 to the following Stake deposit address to proceed.\n\n"
+            f"Address : <code>{address}</code>\n"
+            f"Network : <b>{network_display}</b>"
+        ),
+        parse_mode="HTML",
+        reply_markup=reply_markup,
+    )
+
+
+async def i_have_deposited_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle 'I have deposited' button - send confirmation message."""
+    query = update.callback_query
+    await query.answer()
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=(
+            "Please wait while the system check your deposit, you will be informed by the "
+            "registered mail in your account once the deposit is confirmed! \U0001f60e\n\n"
+            "Sincerely,\nStake Team"
+        ),
+    )
 
 
 def main():
@@ -196,6 +313,9 @@ def main():
     app.add_handler(CallbackQueryHandler(bonus_30_free_callback, pattern="^bonus_30_free$"))
     app.add_handler(CallbackQueryHandler(deposit_yes_callback, pattern="^deposit_yes$"))
     app.add_handler(CallbackQueryHandler(deposit_no_callback, pattern="^deposit_no$"))
+    app.add_handler(CallbackQueryHandler(currency_callback, pattern="^currency_"))
+    app.add_handler(CallbackQueryHandler(network_callback, pattern="^network_"))
+    app.add_handler(CallbackQueryHandler(i_have_deposited_callback, pattern="^i_have_deposited$"))
 
     # Text message handler (for username input)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, username_handler))
