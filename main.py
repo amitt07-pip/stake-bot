@@ -319,6 +319,7 @@ async def network_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     deposit_caption = (
         f"<i>Please Deposit minimum ${context.user_data.get('min_deposit', 20)} to the following Stake deposit address to proceed.</i>\n\n"
+        f"Currency : <b>{currency}</b>\n"
         f"Address : <code>{address}</code>\n"
         f"Network : <b>{network_display}</b>"
     )
