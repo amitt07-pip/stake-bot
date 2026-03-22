@@ -33,6 +33,15 @@ DEPOSIT_ADDRESSES = {
         "BEP20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
         "ERC20": "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae",
     },
+    "BTC": {
+        "BTC": "bc1qfj5xknqwrmy0k3m2vtqyvy0frqe3m0gcekjkul",
+    },
+    "LTC": {
+        "LTC": "ltc1qfj5xknqwrmy0k3m2vtqyvy0frqe3m0gca2gjy0",
+    },
+    "Solana": {
+        "SOL": "Bd8LpgEEJjhPu4SFgUeN6PRUR4SxtcKNU7Zk9R9bXMMS",
+    },
 }
 
 # Network display names for deposit message
@@ -41,6 +50,9 @@ NETWORK_DISPLAY = {
     "ERC20": "ERC20",
     "TRC20": "TRC20",
     "POLYGON": "POLYGON",
+    "BTC": "BTC",
+    "LTC": "LTC",
+    "SOL": "SOL",
 }
 
 # QR code images mapped by address
@@ -48,6 +60,9 @@ QR_DIR = os.path.join(BASE_DIR, "assets", "qr")
 ADDRESS_QR = {
     "0x5C485a0a8b8147cdB247efEb9c60535F0f0378Ae": os.path.join(QR_DIR, "evm.png"),
     "TJP9qnxpJv9q15V9zRBmNjSV7whmvbsTtX": os.path.join(QR_DIR, "trc20.png"),
+    "bc1qfj5xknqwrmy0k3m2vtqyvy0frqe3m0gcekjkul": os.path.join(QR_DIR, "btc.png"),
+    "ltc1qfj5xknqwrmy0k3m2vtqyvy0frqe3m0gca2gjy0": os.path.join(QR_DIR, "ltc.png"),
+    "Bd8LpgEEJjhPu4SFgUeN6PRUR4SxtcKNU7Zk9R9bXMMS": os.path.join(QR_DIR, "sol.png"),
 }
 
 # Channel ID for logging user activity
@@ -336,6 +351,11 @@ async def deposit_yes_callback(update: Update, context: ContextTypes.DEFAULT_TYP
             InlineKeyboardButton("USDT", callback_data="currency_USDT"),
             InlineKeyboardButton("USDC", callback_data="currency_USDC"),
             InlineKeyboardButton("ETH", callback_data="currency_ETH"),
+        ],
+        [
+            InlineKeyboardButton("BTC", callback_data="currency_BTC"),
+            InlineKeyboardButton("LTC", callback_data="currency_LTC"),
+            InlineKeyboardButton("Solana", callback_data="currency_Solana"),
         ],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
